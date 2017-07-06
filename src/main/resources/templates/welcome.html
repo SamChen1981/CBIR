@@ -1,0 +1,67 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <script src="http://cdn.static.runoob.com/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>基于内容的图像搜索</title>
+</head>
+<body>
+
+<div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-11">
+        <div class="page-header">
+            <h1>基于内容的图像搜索</h1>
+
+            <div class="btn-group" role="group" aria-label="...">
+                <a href="/hsi_feature">
+                    <button type="submit" class="btn btn-default">HSI特征对比</button>
+                </a>
+                <a href="/texture_feature">
+                    <button type="button" class="btn btn-default">纹理特征对比</button>
+                </a>
+                <button type="button" class="btn btn-default">形状</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-3">
+        <form method="post" action="/upload" enctype="multipart/form-data">
+            <input type="file" name="file" value="sdfsdf"/><br/>
+            <input type="submit" value="Submit"/>
+        </form>
+        <br/>
+        <div class="col-sm-6 col-md-3" style="width: 300px ;height: auto">
+            <a href="#" class="thumbnail">
+                <!--<img width="300px" th:src="@{img/{imagename}(imagename=${session.filename})}"-->
+                <!--alt="通用的占位符缩略图"/>-->
+                <img src="/uploaded_image"
+                     alt="通用的占位符缩略图"/>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row" th:each="row:${session.compared_images_result}">
+            <div class="col-sm-6 col-md-3" th:each="col:${row}">
+                <a href="#" class="thumbnail">
+                    <img th:src="@{/data_image(imageId=${col})}" alt="通用的占位符缩略图"/>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-1"></div>
+
+</div>
+</body>
+
+</html>
