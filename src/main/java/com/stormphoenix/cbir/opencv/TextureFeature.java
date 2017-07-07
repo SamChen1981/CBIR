@@ -13,6 +13,18 @@ public class TextureFeature {
 
     public native static Texture calculateTextureFeature(String path);
 
+    public static double calculateEntropyDistance(Texture texture, TextureFeatureEntity entity) {
+        double temp = Math.abs(texture.eentropy - entity.getEentropy()) * 0.8;
+        temp += Math.abs(texture.centropy - entity.getCentropy()) * 0.2;
+        return temp;
+    }
+
+    public static double calculateIdmDistance(Texture texture, TextureFeatureEntity entity) {
+        double temp = Math.abs(texture.eidm - entity.getEidm()) * 0.8;
+        temp += Math.abs(texture.cidm - entity.getCidm()) * 0.2;
+        return temp;
+    }
+
     public static double calculateTextureDistance(Texture texture, TextureFeatureEntity entity) {
         double temp = (Math.pow(texture.eentropy - entity.getEentropy(), 2) + Math.pow(texture.centropy - entity.getCentropy(), 2)
                 + Math.pow(texture.eidm - entity.getEidm(), 2) + Math.pow(texture.cidm - entity.getCidm(), 2)

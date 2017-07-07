@@ -1,15 +1,20 @@
 package com.stormphoenix.cbir.controller;
 
+import com.stormphoenix.cbir.Utils;
 import com.stormphoenix.cbir.entities.HsiFeatureEntity;
+import com.stormphoenix.cbir.entities.HuFeatureEntity;
 import com.stormphoenix.cbir.entities.ImagesEntity;
 import com.stormphoenix.cbir.entities.TextureFeatureEntity;
 import com.stormphoenix.cbir.opencv.HsiFeature;
+import com.stormphoenix.cbir.opencv.HuFeature;
 import com.stormphoenix.cbir.opencv.TextureFeature;
 import com.stormphoenix.cbir.reporsitory.JpaHsiFeature;
 import com.stormphoenix.cbir.reporsitory.JpaImages;
+import com.stormphoenix.cbir.reporsitory.JpaShapeFeature;
 import com.stormphoenix.cbir.reporsitory.JpaTextureFeature;
 import com.stormphoenix.cbir.structs.DistIdEntry;
 import com.stormphoenix.cbir.structs.HsiCenterMatrix;
+import com.stormphoenix.cbir.structs.ShapeHuMatrix;
 import com.stormphoenix.cbir.structs.Texture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -41,6 +46,8 @@ public class WebController {
     public JpaHsiFeature jpaHsiFeature;
     @Autowired
     public JpaTextureFeature jpaTextureFeature;
+    @Autowired
+    public JpaShapeFeature jpaShapeFeature;
 
     @RequestMapping("/data_image")
     public void showDatabaseImage(@RequestParam("imageId") String imageId, HttpServletResponse response) {
@@ -116,16 +123,57 @@ public class WebController {
             curImgId++;
         }
 
-        int resultImgCount = 0;
-        while (resultImgCount < 12) {
-            if (resultImgCount % 4 == 0) {
-                imgRows.add(new ArrayList<>());
-                imgRows.get(imgRows.size() - 1).add(queue.poll().id);
-            } else {
-                imgRows.get(imgRows.size() - 1).add(queue.poll().id);
-            }
-            resultImgCount++;
+        imgRows = Utils.getShowingImageLists(queue);
+        session.setAttribute("compared_images_result", imgRows);
+        System.out.println("finish");
+        return "redirect:/";
+    }
+
+    @GetMapping("/idm")
+    public String idm(HttpSession session) {
+        String filename = (String) session.getAttribute("filename");
+        if (filename == null) {
+//            System.out.println("jni failed .... null");
+            return "redirect:/";
         }
+        PriorityQueue<DistIdEntry> queue = new PriorityQueue<>();
+        int curImgId = 1;
+
+        Texture textureFeature = TextureFeature.calculateTextureFeature(UPLOADED_FOLDER + File.separator + filename);
+
+        while (curImgId <= 9000) {
+            TextureFeatureEntity textureFeatureEntity = jpaTextureFeature.findByForeignKey(curImgId);
+            double distance = TextureFeature.calculateIdmDistance(textureFeature, textureFeatureEntity);
+            queue.add(new DistIdEntry(distance, curImgId));
+            curImgId++;
+        }
+
+        List<List<Integer>> imgRows = Utils.getShowingImageLists(queue);
+        session.setAttribute("compared_images_result", imgRows);
+        System.out.println("finish");
+        return "redirect:/";
+    }
+
+    @GetMapping("/entropy")
+    public String entropy(HttpSession session) {
+        String filename = (String) session.getAttribute("filename");
+        if (filename == null) {
+//            System.out.println("jni failed .... null");
+            return "redirect:/";
+        }
+        PriorityQueue<DistIdEntry> queue = new PriorityQueue<>();
+        int curImgId = 1;
+
+        Texture textureFeature = TextureFeature.calculateTextureFeature(UPLOADED_FOLDER + File.separator + filename);
+
+        while (curImgId <= 9000) {
+            TextureFeatureEntity textureFeatureEntity = jpaTextureFeature.findByForeignKey(curImgId);
+            double distance = TextureFeature.calculateEntropyDistance(textureFeature, textureFeatureEntity);
+            queue.add(new DistIdEntry(distance, curImgId));
+            curImgId++;
+        }
+
+        List<List<Integer>> imgRows = Utils.getShowingImageLists(queue);
         session.setAttribute("compared_images_result", imgRows);
         System.out.println("finish");
         return "redirect:/";
@@ -150,17 +198,32 @@ public class WebController {
             curImgId++;
         }
 
-        List<List<Integer>> imgRows = new ArrayList<>();
-        int resultImgCount = 0;
-        while (resultImgCount < 12) {
-            if (resultImgCount % 4 == 0) {
-                imgRows.add(new ArrayList<>());
-                imgRows.get(imgRows.size() - 1).add(queue.poll().id);
-            } else {
-                imgRows.get(imgRows.size() - 1).add(queue.poll().id);
-            }
-            resultImgCount++;
+        List<List<Integer>> imgRows = Utils.getShowingImageLists(queue);
+        session.setAttribute("compared_images_result", imgRows);
+        System.out.println("finish");
+        return "redirect:/";
+    }
+
+    @GetMapping("/shape_feature")
+    public String shapeFeature(HttpSession session) {
+        String filename = (String) session.getAttribute("filename");
+        if (filename == null) {
+//            System.out.println("jni failed .... null");
+            return "redirect:/";
         }
+        PriorityQueue<DistIdEntry> queue = new PriorityQueue<>();
+        int curImgId = 1;
+
+        ShapeHuMatrix shapeHuMatrix = HuFeature.calculateShapeHuFeature(UPLOADED_FOLDER + File.separator + filename);
+
+        while (curImgId <= 9000) {
+            HuFeatureEntity huFeatureEntity = jpaShapeFeature.findByForeignKey(curImgId);
+            double distance = HuFeature.calculateHuMatrixDistance(shapeHuMatrix, huFeatureEntity);
+            queue.add(new DistIdEntry(distance, curImgId));
+            curImgId++;
+        }
+
+        List<List<Integer>> imgRows = Utils.getShowingImageLists(queue);
         session.setAttribute("compared_images_result", imgRows);
         System.out.println("finish");
         return "redirect:/";
